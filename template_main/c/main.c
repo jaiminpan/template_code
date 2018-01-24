@@ -12,9 +12,10 @@
 
 #include "simple_c.h"
 
-
-#define PRJ_VERSIONSTR		"Server " "0.0.1" "\n"
-#define PRJ_EMAIL			"jaimin.pan@gmail.com"
+#define PRJ_VERSION 		"0.0.1"
+#define PRJ_VERSIONSTR 		"Server " PRJ_VERSION
+#define PRJ_BUILDSTR 		"Build " __DATE__ " " __TIME__
+#define PRJ_EMAIL 			"jaimin.pan@gmail.com"
 
 #define log_error printf
 
@@ -46,7 +47,8 @@ main(int argc, char *argv[])
 		}
 		if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-V") == 0)
 		{
-			fputs(PRJ_VERSIONSTR, stdout);
+			fputs(PRJ_VERSIONSTR "\n", stdout);
+			fputs(PRJ_BUILDSTR "\n", stdout);
 			exit(0);
 		}
 
