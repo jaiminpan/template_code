@@ -13,28 +13,49 @@
 #include "simple_c.h"
 #include "template_main.h"
 
-#define PRJ_VERSION 		"0.0.1"
-#define PRJ_VERSIONSTR 		"Server " PRJ_VERSION
-#define PRJ_BUILDSTR 		"Build " __DATE__ " " __TIME__
-#define PRJ_EMAIL 			"jaimin.pan@gmail.com"
+#define PROJ_VERSION 		"0.1.0"
+#define PROJ_VERSIONSTR 		"Template Main " PROJ_VERSION
+#define PROJ_BUILDSTR 		"Build " __DATE__ " " __TIME__
+#define PROJ_EMAIL 			"jaimin.pan@gmail.com"
 
 #define log_error printf
 
 
-const char *progname;
-
-
+static int server_main(int argc, char* argv[]);
 static void help(const char *progname);
 static const char* get_progname(const char *argv0);
 static void check_root(const char *progname);
 
+
+TemplateMainOptionData template_main_option_data = {
+	.usage_callback = help,
+	.version = PROJ_VERSIONSTR "\n" PROJ_BUILDSTR,
+};
+TemplateMainOption template_main_option = &template_main_option_data;
+
+TemplateMainGeneralData template_main_general_data;
+TemplateMainGeneral template_main_general = &template_main_general_data;
+
+
+static int
+server_main(int argc, char* argv[])
+{
+	(void) argc, (void) argv;
+	log_error("template main is called");
+
+	return 0;
+}
+
 int
 template_main(int argc, char *argv[], template_main_callback main_callback,
-				template_usage_cllback usage_callback)
+			  TemplateMainOption option)
 {
 	bool		do_check_root = true;
 
-	progname = get_progname(argv[0]);
+	if (!option)
+		option = template_main_option;
+
+	const char* progname = template_main_general->progname = get_progname(argv[0]);
 
 	/*
 	 * Catch standard options before doing much else, in particular before we
@@ -44,16 +65,20 @@ template_main(int argc, char *argv[], template_main_callback main_callback,
 	{
 		if (strcmp(argv[1], "--help") == 0)
 		{
-			if (usage_callback)
-				usage_callback(progname);
+			if (option->usage_callback)
+				option->usage_callback(progname);
 			else
 				help(progname);
 			exit(0);
 		}
 		if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-V") == 0)
 		{
-			fputs(PRJ_VERSIONSTR "\n", stdout);
-			fputs(PRJ_BUILDSTR "\n", stdout);
+			if (option->version)
+				printf("%s\n", option->version);
+			else {
+				fputs(PROJ_VERSIONSTR "\n", stdout);
+				fputs(PROJ_BUILDSTR "\n", stdout);
+			}
 			exit(0);
 		}
 
@@ -72,6 +97,8 @@ template_main(int argc, char *argv[], template_main_callback main_callback,
 	if (do_check_root)
 		check_root(progname);
 
+	if (!main_callback)
+		main_callback = server_main;
 	return main_callback(argc, argv);
 }
 
@@ -89,14 +116,14 @@ help(const char *progname)
 
 	printf(_("\nPlease read the documentation for the complete list of run-time\n"
 			 "configuration settings and how to set them on the command line or in\n"
-			 "the configuration file.\n\n"
-			 "Report bugs to <%s>.\n"), PRJ_EMAIL);
+			 "the configuration file.\n\n"));
+	printf(_("Report bugs to <%s>.\n"), PROJ_EMAIL);
 }
 
 static const char*
 get_progname(const char *argv0)
 {
-	const char* progname = "not found";
+	const char* progname = "Unknown";
 	char sep = '/';
 	char *p = strrchr(argv0, sep);
 	if (p)
